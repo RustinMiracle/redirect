@@ -18,18 +18,22 @@
             'ticktick': 'ticktick://'
         };
 
-        // 获取URL参数
-        function getParameterByName(name) {
-            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
-                results = regex.exec(location.search);
-            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
-        }
-
-        // 清理URI，移除重复的协议前缀
-        function cleanUri(uri, protocol) {
-            // 移除开头的协议前缀（如果存在）
-            return uri.replace(new RegExp(`^${protocol}`), '');
+        // 获取完整的 URI 参数
+        function getFullUri() {
+            const searchParams = new URLSearchParams(window.location.search);
+            const app = searchParams.get('app');
+            const uri = searchParams.get('uri');
+            
+            // 获取所有其他参数
+            const otherParams = [];
+            for (const [key, value] of searchParams.entries()) {
+                if (key !== 'app' && key !== 'uri') {
+                    otherParams.push(`${key}=${value}`);
+                }
+            }
+            
+            // 组合完整的 URI
+            return uri + (otherParams.length > 0 ? '&' + otherParams.join('&') : '');
         }
 
         // 检查应用是否已安装
@@ -79,14 +83,14 @@
 
         // 页面加载时执行重定向
         window.onload = function() {
-            const app = getParameterByName('app');
-            const uri = getParameterByName('uri');
+            const searchParams = new URLSearchParams(window.location.search);
+            const app = searchParams.get('app');
+            const fullUri = getFullUri();
             
-            if (app && uri && SUPPORTED_APPS[app]) {
+            if (app && fullUri && SUPPORTED_APPS[app]) {
                 const protocol = SUPPORTED_APPS[app];
-                const cleanUriString = cleanUri(uri, protocol);
                 checkAppInstalled(protocol);
-                window.location.href = protocol + cleanUriString;
+                window.location.href = protocol + fullUri;
             } else {
                 document.getElementById('message').innerHTML = `
                     <div class="error-message">
