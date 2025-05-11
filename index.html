@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>通用应用链接重定向</title>
+    <script>
+        // 支持的应用程序及其协议
+        const SUPPORTED_APPS = {
+            'obsidian': 'obsidian://',
+            'omnifocus': 'omnifocus://',
+            'notion': 'notion://',
+            'evernote': 'evernote://',
+            'bear': 'bear://',
+            'craft': 'craft://',
+            'drafts': 'drafts://',
+            'things': 'things://',
+            'todoist': 'todoist://',
+            'ticktick': 'ticktick://'
+        };
+
+        // 获取URL参数
+        function getParameterByName(name) {
+            name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+            var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+                results = regex.exec(location.search);
+            return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        }
+
+        // 检查应用是否已安装
+        function checkAppInstalled(appProtocol) {
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            let isInstalled = false;
+            const timeout = setTimeout(() => {
+                if (!isInstalled) {
+                    showAppNotInstalledMessage();
+                }
+            }, 1000);
+
+            iframe.onload = function() {
+                isInstalled = true;
+                clearTimeout(timeout);
+                document.body.removeChild(iframe);
+            };
+
+            iframe.src = appProtocol;
+        }
+
+        // 显示应用未安装的提示
+        function showAppNotInstalledMessage() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `
+                <div class="error-message">
+                    <h2>应用未安装</h2>
+                    <p>请先安装相应的应用程序。</p>
+                    <div class="app-links">
+                        <a href="https://obsidian.md" target="_blank">Obsidian</a>
+                        <a href="https://www.omnigroup.com/omnifocus" target="_blank">OmniFocus</a>
+                        <a href="https://www.notion.so" target="_blank">Notion</a>
+                        <a href="https://evernote.com" target="_blank">Evernote</a>
+                        <a href="https://bear.app" target="_blank">Bear</a>
+                        <a href="https://www.craft.do" target="_blank">Craft</a>
+                        <a href="https://getdrafts.com" target="_blank">Drafts</a>
+                        <a href="https://culturedcode.com/things/" target="_blank">Things</a>
+                        <a href="https://todoist.com" target="_blank">Todoist</a>
+                        <a href="https://ticktick.com" target="_blank">TickTick</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 页面加载时执行重定向
+        window.onload = function() {
+            const app = getParameterByName('app');
+            const uri = getParameterByName('uri');
+            
+            if (app && uri && SUPPORTED_APPS[app]) {
+                const protocol = SUPPORTED_APPS[app];
+                checkAppInstalled(protocol);
+                window.location.href = protocol + uri;
+            } else {
+                document.getElementById('message').innerHTML = `
+                    <div class="error-message">
+                        <h2>参数错误</h2>
+                        <p>请提供正确的应用名称和 URI 参数。</p>
+                        <p>支持的应用程序：${Object.keys(SUPPORTED_APPS).join(', ')}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        .error-message {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 600px;
+        }
+        .app-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+        .app-links a {
+            color: #007AFF;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid #007AFF;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .app-links a:hover {
+            background: #007AFF;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="message">
+        <p>正在重定向到应用程序...</p>
+    </div>
+</body>
+</html> 
