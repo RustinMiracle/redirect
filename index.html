@@ -26,6 +26,12 @@
             return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
         }
 
+        // 清理URI，移除重复的协议前缀
+        function cleanUri(uri, protocol) {
+            // 移除开头的协议前缀（如果存在）
+            return uri.replace(new RegExp(`^${protocol}`), '');
+        }
+
         // 检查应用是否已安装
         function checkAppInstalled(appProtocol) {
             const iframe = document.createElement('iframe');
@@ -78,8 +84,9 @@
             
             if (app && uri && SUPPORTED_APPS[app]) {
                 const protocol = SUPPORTED_APPS[app];
+                const cleanUriString = cleanUri(uri, protocol);
                 checkAppInstalled(protocol);
-                window.location.href = protocol + uri;
+                window.location.href = protocol + cleanUriString;
             } else {
                 document.getElementById('message').innerHTML = `
                     <div class="error-message">
