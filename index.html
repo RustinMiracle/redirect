@@ -24,6 +24,16 @@
             const app = searchParams.get('app');
             const uri = searchParams.get('uri');
             
+            console.log('Original URI:', uri);
+            
+            // 如果 URI 已经包含协议前缀，则移除它
+            let cleanUri = uri;
+            if (uri && uri.startsWith(SUPPORTED_APPS[app])) {
+                cleanUri = uri.substring(SUPPORTED_APPS[app].length);
+            }
+            
+            console.log('Cleaned URI:', cleanUri);
+            
             // 获取所有其他参数
             const otherParams = [];
             for (const [key, value] of searchParams.entries()) {
@@ -33,7 +43,10 @@
             }
             
             // 组合完整的 URI
-            return uri + (otherParams.length > 0 ? '&' + otherParams.join('&') : '');
+            const fullUri = cleanUri + (otherParams.length > 0 ? '&' + otherParams.join('&') : '');
+            console.log('Full URI:', fullUri);
+            
+            return fullUri;
         }
 
         // 检查应用是否已安装
@@ -87,10 +100,29 @@
             const app = searchParams.get('app');
             const fullUri = getFullUri();
             
+            console.log('App:', app);
+            console.log('Full URI:', fullUri);
+            
             if (app && fullUri && SUPPORTED_APPS[app]) {
                 const protocol = SUPPORTED_APPS[app];
-                checkAppInstalled(protocol);
-                window.location.href = protocol + fullUri;
+                const finalUri = protocol + fullUri;
+                console.log('Final URI:', finalUri);
+                
+                // 显示调试信息
+                document.getElementById('message').innerHTML = `
+                    <div class="debug-info">
+                        <h3>调试信息</h3>
+                        <p>应用: ${app}</p>
+                        <p>协议: ${protocol}</p>
+                        <p>完整 URI: ${fullUri}</p>
+                        <p>最终 URI: ${finalUri}</p>
+                    </div>
+                `;
+                
+                // 延迟重定向，以便查看调试信息
+                setTimeout(() => {
+                    window.location.href = finalUri;
+                }, 2000);
             } else {
                 document.getElementById('message').innerHTML = `
                     <div class="error-message">
@@ -112,7 +144,7 @@
             margin: 0;
             background-color: #f5f5f5;
         }
-        .error-message {
+        .error-message, .debug-info {
             background: white;
             padding: 2rem;
             border-radius: 8px;
@@ -138,6 +170,10 @@
         .app-links a:hover {
             background: #007AFF;
             color: white;
+        }
+        .debug-info {
+            text-align: left;
+            font-family: monospace;
         }
     </style>
 </head>
